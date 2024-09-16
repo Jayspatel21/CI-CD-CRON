@@ -1,15 +1,17 @@
 name: Terraform Droplet Lifecycle
 
 on:
+  workflow_dispatch: # Allows manual triggering
   schedule:
-    # Run at 11:00 AM and 12:00 PM UTC every day
-    - cron: "5 11 * * *"
-    - cron: "10 11 * * *"
+    # Run at 11:00 AM IST (5:30 AM UTC)
+    - cron: "45 5 * * *"
+    # Run at 12:00 PM IST (6:30 AM UTC)
+    - cron: "50 5 * * *"
 
 jobs:
   create_droplet:
     runs-on: ubuntu-latest
-    if: github.event.schedule == 'cron(5 11 * * *)'
+    if: github.event.schedule == 'cron(45 5 * * *)'
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
@@ -27,7 +29,7 @@ jobs:
 
   destroy_droplet:
     runs-on: ubuntu-latest
-    if: github.event.schedule == 'cron(10 11 * * *)'
+    if: github.event.schedule == 'cron(50 5 * * *)'
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
