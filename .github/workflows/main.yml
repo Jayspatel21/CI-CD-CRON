@@ -1,0 +1,44 @@
+name: Terraform Droplet Lifecycle
+
+on:
+  schedule:
+    # Run at 11:00 AM and 12:00 PM UTC every day
+    - cron: "0 11 * * *"
+    - cron: "0 12 * * *"
+
+jobs:
+  create_droplet:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == 'cron(0 11 * * *)'
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+    
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.2
+    
+    - name: Initialize Terraform
+      run: terraform init
+    
+    - name: Create Droplet
+      run: terraform apply -auto-approve -var="digitalocean_token=${{ secrets.DIGITALOCEAN_TOKEN }}"
+
+  destroy_droplet:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == 'cron(0 12 * * *)'
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.2
+    
+    - name: Initialize Terraform
+      run: terraform init
+    
+    - name: Destroy Droplet
+      run: terraform destroy -auto-approve -var="digitalocean_token=${{ secrets.DIGITALOCEAN_TOKEN }}" 
