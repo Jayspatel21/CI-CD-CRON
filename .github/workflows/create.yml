@@ -3,7 +3,7 @@ name: Create Droplet
 on:
   schedule:
     # Run at 11:00 AM IST (5:30 AM UTC)
-    - cron: "57 6 * * *"
+    - cron: "10 7 * * *"
 
 jobs:
   create_droplet:
