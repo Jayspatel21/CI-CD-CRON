@@ -9,7 +9,7 @@ on:
 jobs:
   create_droplet:
     runs-on: ubuntu-latest
-    if: github.event.schedule == 'cron(0 11 * * *)'
+    if: github.event.schedule == 'cron(33 5 * * *)'
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
@@ -27,7 +27,7 @@ jobs:
 
   destroy_droplet:
     runs-on: ubuntu-latest
-    if: github.event.schedule == 'cron(0 12 * * *)'
+    if: github.event.schedule == 'cron(40 5 * * *)'
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
