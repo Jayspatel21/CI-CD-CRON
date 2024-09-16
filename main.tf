@@ -15,7 +15,7 @@ provider "digitalocean" {
 resource "digitalocean_droplet" "example" {
   image  = "ubuntu-20-04-x64"
   name   = "ci-cd-droplet"
-  region = "nyc3"
+  region = "blr1"
   size   = "s-1vcpu-1gb"
   
   # Use cloud-init user data to set default password
