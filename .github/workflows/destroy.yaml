@@ -1,0 +1,25 @@
+name: Destroy Droplet
+
+on:
+  schedule:
+    # Run at 12:00 PM IST (6:30 AM UTC)
+    - cron: "35 8 * * *"
+
+jobs:
+  destroy_droplet:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.2
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Destroy Terraform (Destroy Droplet)
+        run: terraform destroy -auto-approve -var="digitalocean_token=${{ secrets.DIGITALOCEAN_TOKEN }}" -var="ssh_fingerprint=${{ secrets.SSH_FINGERPRINT }}"
