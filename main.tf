@@ -1,12 +1,12 @@
-terraform {
-  required_providers {
-    digitalocean = {
-      source  = "digitalocean/digitalocean"
-      version = "~> 2.0"  # Specify a version or use the latest compatible version
-    }
-  }
-}
-provider "hashicorp/digitalocean" {
+# terraform {
+#   required_providers {
+#     digitalocean = {
+#       source  = "digitalocean/digitalocean"
+#       version = "~> 2.0"  # Specify a version or use the latest compatible version
+#     }
+#   }
+# }
+provider "digitalocean" {
   token = var.digitalocean_token
 }
 
