@@ -3,8 +3,8 @@ name: Terraform Droplet Lifecycle
 on:
   schedule:
     # Run at 11:00 AM and 12:00 PM UTC every day
-    - cron: "0 11 * * *"
-    - cron: "0 12 * * *"
+    - cron: "33 5 * * *"
+    - cron: "40 5 * * *"
 
 jobs:
   create_droplet:
