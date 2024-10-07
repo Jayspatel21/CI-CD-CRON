@@ -3,7 +3,7 @@ name: Destroy Droplet
 on:
   schedule:
     # Run at 12:00 PM IST (6:30 AM UTC)
-    - cron: "28 10 * * *"
+    - cron: "10 11 * * *"
 
 jobs:
   destroy_droplet:
