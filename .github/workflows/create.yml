@@ -3,9 +3,10 @@ name: Terraform Droplet Lifecycle
 on:
   workflow_dispatch: # Allows manual triggering
   schedule:
-    # Run at 17:18 AM IST (5:30 AM UTC)
-    - cron: "48 11 * * *"
-    # Run at 12:00 PM IST (6:30 AM UTC)
+    # Run at 5:30 AM UTC (which is 11:00 AM IST) to create the droplet
+    - cron: "57 5 * * *" 
+    # Run at 6:30 AM UTC (which is 12:00 PM IST) to destroy the droplet
+    - cron: "10 6 * * *"
 
 jobs:
   create_droplet:
@@ -21,6 +22,30 @@ jobs:
     
     - name: Initialize Terraform
       run: terraform init
+
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan  # Save the plan to a file
     
     - name: Create Droplet
-      run: terraform apply -auto-approve -var="digitalocean_token=${{ secrets.DIGITALOCEAN_TOKEN }}"
+      run: terraform apply -auto-approve tfplan  # Use the saved plan file
+      env:
+        DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}  # Pass token as environment variable
+
+  destroy_droplet:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.2
+
+    - name: Initialize Terraform
+      run: terraform init
+
+    - name: Terraform Destroy
+      run: terraform destroy -auto-approve
+      env:
+        DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}  # Pass token as environment variable
