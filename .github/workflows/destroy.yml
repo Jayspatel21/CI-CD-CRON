@@ -27,7 +27,7 @@ name: Terraform Destroy
 
 on:
   schedule:
-    - cron: '40 9 * * *'  # Adjust the schedule as needed
+    - cron: '05 10 * * *'  # Adjust the schedule as needed
   workflow_dispatch:  # Allows manual triggering of the workflow
 
 jobs:
