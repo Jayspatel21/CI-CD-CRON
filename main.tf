@@ -1,4 +1,13 @@
 terraform {
+  backend "remote" {
+    organization = "jackkkk"  # Replace with your organization name
+
+    workspaces {
+      name = "Jackk-1"  # Replace with your workspace name
+    }
+  }
+
+
   required_providers {
     digitalocean = {
       source  = "digitalocean/digitalocean"
