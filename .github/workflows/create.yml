@@ -28,9 +28,7 @@
 #         run: terraform apply -auto-approve -var="digitalocean_token=${{ secrets.DIGITALOCEAN_TOKEN }}"
 name: Terraform Apply
 
-on:
-  schedule:
-    - cron: '02 5 * * *'  # Adjust the schedule as needed (e.g., daily at midnight)
+on:  # Adjust the schedule as needed (e.g., daily at midnight)
   workflow_dispatch:  # Allows manual triggering of the workflow
 
 jobs:
