@@ -87,12 +87,12 @@ jobs:
           TF_LOG: INFO
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplann
+        run: terraform plan
         env:
           TF_VAR_digitalocean_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve tfplann
+        run: terraform apply -auto-approve
         env:
           TF_VAR_digitalocean_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
