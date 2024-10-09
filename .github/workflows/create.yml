@@ -1,98 +1,89 @@
-# # name: Create Droplet
-
-# # on:
-# #   schedule:
-# #     # Run at 8:00 PM IST (14:30 AM UTC)
-# #     - cron: "35 7 * * *"
-
-# # jobs:
-# #   create_droplet:
-# #     runs-on: ubuntu-latest
-
-# #     steps:
-# #       - name: Checkout Code
-# #         uses: actions/checkout@v3
-
-# #       - name: Install Terraform
-# #         uses: hashicorp/setup-terraform@v2
-# #         with:
-# #           terraform_version: 1.5.2
-
-# #       - name: Initialize Terraform
-# #         run: terraform init
-      
-# #       - name: plan terraform
-# #         run: terraform plan -out none -var="digitalocean_token=${{ secrets.DIGITALOCEAN_TOKEN }}"
-
-# #       - name: Create Terraform (Create Droplet)
-# #         run: terraform apply -auto-approve -var="digitalocean_token=${{ secrets.DIGITALOCEAN_TOKEN }}"
 # name: Terraform Apply
 
-# on:  # Adjust the schedule as needed (e.g., daily at midnight)
-#   workflow_dispatch:  # Allows manual triggering of the workflow
+# on:
+#   workflow_dispatch:
+#   schedule:
+#     - cron: '23 7 * * *'
 
 # jobs:
 #   terraform:
-#     runs-on: self-hosted
-
+#     name: 'Terraform Deployment'
+#     runs-on: ubuntu-latest
+    
+#     env:
+#       TF_TOKEN_app_terraform_io: ${{ secrets.TERRAFORM_API_TOKEN }}  # Terraform Cloud API token
+#       TF_VAR_digitalocean_token: ${{ secrets.TF_VAR_digitalocean_token}}  # Note the variable name change
+    
 #     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v2
+#       - name: Checkout Repository
+#         uses: actions/checkout@v3
 
-#       - name: Set up Terraform
+#       - name: Setup Terraform
 #         uses: hashicorp/setup-terraform@v2
-#         # with:
-#         #   terraform_version: 1.3.5  # Adjust version as needed
+#         with:
+#           terraform_wrapper: false
+#           cli_config_credentials_token: ${{ secrets.TERRAFORM_API_TOKEN }}
 
 #       - name: Terraform Init
 #         run: terraform init
-#         # env:
-#         #   TF_TOKEN_app: ${{ secrets.TERRAFORM_API_TOKEN }}  # Authenticate with Terraform Cloud
+#         env:
+#           TF_LOG: INFO
 
 #       - name: Terraform Plan
-#         run: terraform plan -out=tfplan
+#         run: terraform plan
+#         env:
+#           TF_VAR_digitalocean_token: ${{ secrets.TF_VAR_digitalocean_token }}
 
-#       - name: Terraform Apply
-#         run: terraform apply -auto-approve tfplan
+#       - name: Terraform Appddly
+#         if: github.ref == 'refs/heads/main'
+#         run: terraform apply -auto-approve
+#         env:
+#           TF_VAR_digitalocean_token: ${{ secrets.TF_VAR_digitalocean_token }}
 
-name: Terraform Apply
+
+name: Terraform Cloud Deployment
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '23 7 * * *'
+    - cron: '13 9 * * *'  
+  workflow_dispatch:
 
 jobs:
   terraform:
-    name: 'Terraform Deployment'
     runs-on: ubuntu-latest
     
-    env:
-      TF_TOKEN_app_terraform_io: ${{ secrets.TERRAFORM_API_TOKEN }}  # Terraform Cloud API token
-      TF_VAR_digitalocean_token: ${{ secrets.TF_VAR_digitalocean_token}}  # Note the variable name change
-    
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
         with:
-          terraform_wrapper: false
-          cli_config_credentials_token: ${{ secrets.TERRAFORM_API_TOKEN }}
-
-      - name: Terraform Init
-        run: terraform init
+          fetch-depth: 1
+      
+      - name: Upload Configuration
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+        id: upload
+        with:
+          workspace: "Jackk-1"
+          directory: "."
         env:
-          TF_LOG: INFO
-
-      - name: Terraform Plan
-        run: terraform plan
+          TF_CLOUD_ORGANIZATION: "jackkkk"
+          TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+      
+      - name: Create Run
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+        id: run
+        with:
+          workspace: "Jackk-1"
+          configuration_version: "${{ steps.upload.outputs.configuration_version_id }}"
         env:
-          TF_VAR_digitalocean_token: ${{ secrets.TF_VAR_digitalocean_token }}
-
-      - name: Terraform Appddly
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve
+          TF_CLOUD_ORGANIZATION: "jackkkk"
+          TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+      
+      - name: Apply Run
+        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
+        if: fromJSON(steps.run.outputs.payload).data.attributes.actions.IsConfirmable
+        with:
+          run: "${{ steps.run.outputs.run_id }}"
+          comment: "Applied via GitHub Actions"
         env:
-          TF_VAR_digitalocean_token: ${{ secrets.TF_VAR_digitalocean_token }}
+          TF_CLOUD_ORGANIZATION: "jackkkk"
+          TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
