@@ -24,9 +24,6 @@ jobs:
         env:
           TF_LOG: INFO
 
-      - name: Terraform Plan Destroy
-        run: terraform plan
-
       - name: Terraform Destroy
         if: github.ref == 'refs/heads/main'  # Runs only on the main branch
         run: terraform destroy -auto-approve
