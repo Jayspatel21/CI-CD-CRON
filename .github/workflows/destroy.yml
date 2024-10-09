@@ -73,7 +73,6 @@ jobs:
 
       - name: Apply Destroy Run
         uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
-        if: fromJSON(steps.destroy_run.outputs.payload).data.attributes.actions.IsConfirmable
         with:
           run: "${{ steps.destroy_run.outputs.run_id }}"
           comment: "Infrastructure destroyed via GitHub Actions"
