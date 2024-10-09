@@ -58,26 +58,31 @@
 name: Terraform Apply
 
 on:
-  workflow_dispatch:  # Allows manual triggering
+  workflow_dispatch:
   # schedule:
-  #   - cron: '0 0 * * *'  # Runs daily at midnight UTC
+  #   - cron: '0 0 * * *'
 
 jobs:
   terraform:
     name: 'Terraform Deployment'
-    runs-on: self-hosted  # Specifies self-hosted runner
+    runs-on: self-hosted
     
     env:
       DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
-      TF_VAR_do_token: ${{ secrets.DIGITALOCEAN_TOKEN }}  # Makes token available to Terraform
+      TF_VAR_do_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
     
-    defaults:
-      run:
-        working-directory: ./terraform  # Adjust this path to where your Terraform files are
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+
+      # Debug step to verify files and directory
+      - name: Debug Information
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
+          echo "Terraform file location:"
+          find . -name "*.tf"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -85,28 +90,16 @@ jobs:
           terraform_wrapper: false
 
       - name: Terraform Init
-        id: init
         run: terraform init
         env:
-          TF_LOG: INFO  # Enable detailed logging
-
-      - name: Terraform Format Check
-        id: fmt
-        run: terraform fmt -check
-        continue-on-error: true
+          TF_LOG: INFO
 
       - name: Terraform Plan
-        id: plan
         run: terraform plan -out=tfplan
         env:
           TF_VAR_do_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
 
-      - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
-
       - name: Terraform Apply
-        id: apply
         run: terraform apply -auto-approve tfplan
         env:
           TF_VAR_do_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
