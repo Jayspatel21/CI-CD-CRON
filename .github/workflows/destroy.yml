@@ -27,12 +27,12 @@ name: Terraform Destroy
 
 on:
   schedule:
-    - cron: '05 10 * * *'  # Adjust the schedule as needed
+    - cron: '05 5 * * *'  # Adjust the schedule as needed
   workflow_dispatch:  # Allows manual triggering of the workflow
 
 jobs:
   terraform:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -43,10 +43,10 @@ jobs:
         with:
           terraform_version: 1.3.5  # Adjust version as needed
 
-      - name: Terraform Init
-        run: terraform init
-        env:
-          TF_TOKEN_app: ${{ secrets.TERRAFORM_API_TOKEN }}  # Authenticate with Terraform Cloud
+      # - name: Terraform Init
+      #   run: terraform init
+      #   env:
+      #     TF_TOKEN_app: ${{ secrets.TERRAFORM_API_TOKEN }}  # Authenticate with Terraform Cloud
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
