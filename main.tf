@@ -16,7 +16,7 @@ terraform {
 }
 
 provider "digitalocean" {
-  token = var.digitalocean_token
+  token = var.TF_VAR_digitalocean_token
 }
 
 resource "digitalocean_droplet" "example" {
@@ -30,7 +30,7 @@ output "droplet_ip" {
   value = digitalocean_droplet.example.ipv4_address
 }
 
-variable "digitalocean_token" {
+variable "TF_VAR_digitalocean_token" {
   type        = string
   description = "Your DigitalOcean API Token"
   sensitive   = true  # Added sensitive flag for security
