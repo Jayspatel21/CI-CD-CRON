@@ -65,7 +65,7 @@ on:
 jobs:
   terraform:
     name: 'Terraform Deployment'
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     
     env:
       TF_TOKEN_app_terraform_io: ${{ secrets.TERRAFORM_API_TOKEN }}  # Terraform Cloud API token

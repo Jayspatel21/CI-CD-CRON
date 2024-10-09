@@ -6,7 +6,7 @@ on:
 jobs:
   terraform-destroy:
     name: 'Terraform Destroy'
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     
     env:
       TF_TOKEN_app_terraform_io: ${{ secrets.TERRAFORM_API_TOKEN }}  # Terraform Cloud API token
@@ -24,8 +24,8 @@ jobs:
         env:
           TF_LOG: INFO
 
-      - name: Terraform Plan Destroy
-        run: terraform plan
+      # - name: Terraform Plan Destroy
+      #   run: terraform plan
 
       - name: Terraform Destroy
         if: github.ref == 'refs/heads/main'  # Runs only on the main branch
