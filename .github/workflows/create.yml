@@ -95,11 +95,11 @@ jobs:
           TF_LOG: INFO
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        run: terraform plan
         env:
           TF_VAR_do_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve
         env:
           TF_VAR_do_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
