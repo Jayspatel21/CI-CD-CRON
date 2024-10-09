@@ -59,8 +59,8 @@ name: Terraform Apply
 
 on:
   workflow_dispatch:
-  # schedule:
-  #   - cron: '0 0 * * *'
+  schedule:
+    - cron: '23 7 * * *'
 
 jobs:
   terraform:
