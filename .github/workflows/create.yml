@@ -45,7 +45,7 @@ name: Terraform Cloud Deployment
 
 on:
   schedule:
-    - cron: '13 9 * * *'  
+    - cron: '42 9 * * *'  
   workflow_dispatch:
 
 jobs:
