@@ -68,26 +68,18 @@ jobs:
     runs-on: self-hosted
     
     env:
-      DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
-      TF_VAR_do_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
+      TF_TOKEN_app_terraform_io: ${{ secrets.TERRAFORM_API_TOKEN }}  # Terraform Cloud API token
+      TF_VAR_digitalocean_token: ${{ secrets.DIGITALOCEAN_TOKEN }}  # Note the variable name change
     
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # Debug step to verify files and directory
-      - name: Debug Information
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Directory contents:"
-          ls -la
-          echo "Terraform file location:"
-          find . -name "*.tf"
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_wrapper: false
+          cli_config_credentials_token: ${{ secrets.TERRAFORM_API_TOKEN }}
 
       - name: Terraform Init
         run: terraform init
@@ -95,11 +87,12 @@ jobs:
           TF_LOG: INFO
 
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -out=tfplann
         env:
-          TF_VAR_do_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
+          TF_VAR_digitalocean_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve tfplann
         env:
-          TF_VAR_do_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
+          TF_VAR_digitalocean_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
