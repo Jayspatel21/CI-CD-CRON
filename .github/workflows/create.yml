@@ -91,7 +91,7 @@ jobs:
         env:
           TF_VAR_digitalocean_token: ${{ secrets.DIGITALOCEAN_TOKEN }}
 
-      - name: Terraform Apply
+      - name: Terraform Appddly
         if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve
         env:
