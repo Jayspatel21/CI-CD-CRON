@@ -21,6 +21,8 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+        env:
+          TF_LOG: INFO
 
       - name: Terraform Plan Destroy
         run: terraform plan
