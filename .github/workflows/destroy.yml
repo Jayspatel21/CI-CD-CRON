@@ -123,10 +123,10 @@ jobs:
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
         id: upload
         with:
-          workspace: "Jackk-1"
+          workspace: "${{ secrets.WORKSPACE_NAME }}"
           directory: "."
         env:
-          TF_CLOUD_ORGANIZATION: "jackkkk"
+          TF_CLOUD_ORGANIZATION: "${{ secrets.ORG_NAME }}"
           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
 
       - name: Trigger Destroy Run
@@ -147,7 +147,7 @@ jobs:
                   "workspace": {
                     "data": {
                       "type": "workspaces",
-                      "id": "ws-8d7zL1pet7ahr2it"
+                      "id": "${{ secrets.WORKSPACE_ID }}"
                     }
                   }
                 }

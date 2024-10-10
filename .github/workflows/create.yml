@@ -185,10 +185,10 @@ jobs:
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
         id: upload
         with:
-          workspace: "Jackk-1"  # Update to your Terraform workspace name
+          workspace: "${{ secrets.WORKSPACE_NAME }}"  # Update to your Terraform workspace name
           directory: "."  # Adjust the directory if necessary
         env:
-          TF_CLOUD_ORGANIZATION: "jackkkk"  # Update to your Terraform Cloud organization
+          TF_CLOUD_ORGANIZATION: "${{ secrets.ORG_NAME }}"  # Update to your Terraform Cloud organization
           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
 
       - name: Trigger Apply Run
@@ -205,7 +205,7 @@ jobs:
                   "workspace": {
                     "data": {
                       "type": "workspaces",
-                      "id": "ws-8d7zL1pet7ahr2it"
+                      "id": "${{ secrets.WORKSPACE_ID }}"
                     }
                   }
                 }
