@@ -168,7 +168,7 @@ name: Terraform Cloud Apply with Retry
 
 on:
   schedule:
-    - cron: '56 9 * * *'  # Schedule for 9:56 AM daily
+    - cron: '15 6 * * *'  # Schedule for 9:56 AM daily
   workflow_dispatch:
 
 jobs:
