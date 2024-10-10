@@ -147,7 +147,7 @@ jobs:
                   "workspace": {
                     "data": {
                       "type": "workspaces",
-                      "id": "ws-8d7zL1pet7ahr2it"  # Correct Workspace ID
+                      "id": "ws-8d7zL1pet7ahr2it"
                     }
                   }
                 }
