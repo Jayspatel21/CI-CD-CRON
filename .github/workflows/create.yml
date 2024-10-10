@@ -129,15 +129,15 @@ jobs:
           TF_CLOUD_ORGANIZATION: "jackkkk"
           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
 
-      - name: Apply Run
-        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
-        if: fromJSON(steps.run.outputs.payload).data.attributes.actions.IsConfirmable
-        with:
-          run: "${{ steps.run.outputs.run_id }}"
-          comment: "Applied via GitHub Actions"
-        env:
-          TF_CLOUD_ORGANIZATION: "jackkkk"
-          TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+      # - name: Apply Run
+      #   uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
+      #   if: fromJSON(steps.run.outputs.payload).data.attributes.actions.IsConfirmable
+      #   with:
+      #     run: "${{ steps.run.outputs.run_id }}"
+      #     comment: "Applied via GitHub Actions"
+      #   env:
+      #     TF_CLOUD_ORGANIZATION: "jackkkk"
+      #     TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
 
       # Retry logic if the apply gets stuck
       - name: Retry Apply Run if Stuck
