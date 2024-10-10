@@ -1,9 +1,9 @@
 terraform {
   backend "remote" {
-    organization = "jackkkk"
+    organization = var.organization
 
     workspaces {
-      name = "Jackk-1"
+      name = var.workspace
     }
   }
 
@@ -30,8 +30,3 @@ output "droplet_ip" {
   value = digitalocean_droplet.example.ipv4_address
 }
 
-variable "TF_VAR_digitalocean_token" {
-  type        = string
-  description = "Your DigitalOcean API Token"
-  sensitive   = true  # Added sensitive flag for security
-}
