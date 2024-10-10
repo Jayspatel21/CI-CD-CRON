@@ -88,17 +88,92 @@
 #           TF_CLOUD_ORGANIZATION: "jackkkk"
 #           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
 
-name: Terraform Cloud Deployment
+# name: Terraform Cloud Deployment
+
+# on:
+#   schedule:
+#     - cron: '42 9 * * *'  
+#   workflow_dispatch:
+
+# jobs:
+#   terraform:
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 30  # Add timeout to avoid infinite stuck jobs
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 1
+
+#       - name: Set Terraform Debug Logs
+#         run: echo "TF_LOG=DEBUG" >> $GITHUB_ENV  # Enable verbose logs
+
+#       - name: Upload Configuration
+#         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+#         id: upload
+#         with:
+#           workspace: "Jackk-1"
+#           directory: "."
+#         env:
+#           TF_CLOUD_ORGANIZATION: "jackkkk"
+#           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+      
+#       - name: Create Run
+#         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+#         id: run
+#         with:
+#           workspace: "Jackk-1"
+#           configuration_version: "${{ steps.upload.outputs.configuration_version_id }}"
+#         env:
+#           TF_CLOUD_ORGANIZATION: "jackkkk"
+#           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+
+#       # - name: Apply Run
+#       #   uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
+#       #   if: fromJSON(steps.run.outputs.payload).data.attributes.actions.IsConfirmable
+#       #   with:
+#       #     run: "${{ steps.run.outputs.run_id }}"
+#       #     comment: "Applied via GitHub Actions"
+#       #   env:
+#       #     TF_CLOUD_ORGANIZATION: "jackkkk"
+#       #     TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+
+#       # Retry logic if the apply gets stuck
+#       - name: Retry Apply Run if Stuck
+#         run: |
+#           attempts=0
+#           max_attempts=3
+#           while [ $attempts -lt $max_attempts ]; do
+#             curl \
+#               --header "Authorization: Bearer ${{ secrets.TERRAFORM_API_TOKEN }}" \
+#               --header "Content-Type: application/vnd.api+json" \
+#               --request POST \
+#               --data '{
+#                 "data": {
+#                   "attributes": {
+#                     "status": "confirmed"
+#                   },
+#                   "type": "runs"
+#                 }
+#               }' \
+#               https://app.terraform.io/api/v2/runs/${{ steps.run.outputs.run_id }}/actions/confirm && break
+#             attempts=$((attempts+1))
+#             sleep 10
+#           done
+#         env:
+#           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+
+name: Terraform Cloud Apply with Retry
 
 on:
   schedule:
-    - cron: '42 9 * * *'  
+    - cron: '56 9 * * *'  # Schedule for 9:56 AM daily
   workflow_dispatch:
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # Add timeout to avoid infinite stuck jobs
 
     steps:
       - name: Checkout code
@@ -106,41 +181,50 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set Terraform Debug Logs
-        run: echo "TF_LOG=DEBUG" >> $GITHUB_ENV  # Enable verbose logs
-
       - name: Upload Configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
         id: upload
         with:
-          workspace: "Jackk-1"
-          directory: "."
+          workspace: "Jackk-1"  # Update to your Terraform workspace name
+          directory: "."  # Adjust the directory if necessary
         env:
-          TF_CLOUD_ORGANIZATION: "jackkkk"
-          TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
-      
-      - name: Create Run
-        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
-        id: run
-        with:
-          workspace: "Jackk-1"
-          configuration_version: "${{ steps.upload.outputs.configuration_version_id }}"
-        env:
-          TF_CLOUD_ORGANIZATION: "jackkkk"
+          TF_CLOUD_ORGANIZATION: "jackkkk"  # Update to your Terraform Cloud organization
           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
 
-      # - name: Apply Run
-      #   uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
-      #   if: fromJSON(steps.run.outputs.payload).data.attributes.actions.IsConfirmable
-      #   with:
-      #     run: "${{ steps.run.outputs.run_id }}"
-      #     comment: "Applied via GitHub Actions"
-      #   env:
-      #     TF_CLOUD_ORGANIZATION: "jackkkk"
-      #     TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+      - name: Trigger Apply Run
+        id: apply
+        run: |
+          curl \
+            --header "Authorization: Bearer ${{ secrets.TERRAFORM_API_TOKEN }}" \
+            --header "Content-Type: application/vnd.api+json" \
+            --request POST \
+            --data '{
+              "data": {
+                "attributes": {
+                  "message": "Creating infrastructure via GitHub Actions"
+                },
+                "type": "runs",
+                "relationships": {
+                  "workspace": {
+                    "data": {
+                      "type": "workspaces",
+                      "id": "ws-8d7zL1pet7ahr2it"  # Update to your workspace ID
+                    }
+                  }
+                }
+              }
+            }' \
+            https://app.terraform.io/api/v2/runs \
+            --silent --show-error --fail --output response.json
 
-      # Retry logic if the apply gets stuck
-      - name: Retry Apply Run if Stuck
+      - name: Extract run_id
+        id: extract_run_id
+        run: |
+          run_id=$(jq -r '.data.id' response.json)
+          echo "::set-output name=apply_run_id::$run_id"
+
+      # Retry apply confirmation
+      - name: Retry Approve Apply Plan if Failed
         run: |
           attempts=0
           max_attempts=3
@@ -151,13 +235,13 @@ jobs:
               --request POST \
               --data '{
                 "data": {
+                  "type": "runs",
                   "attributes": {
                     "status": "confirmed"
-                  },
-                  "type": "runs"
+                  }
                 }
               }' \
-              https://app.terraform.io/api/v2/runs/${{ steps.run.outputs.run_id }}/actions/confirm && break
+              https://app.terraform.io/api/v2/runs/${{ steps.extract_run_id.outputs.apply_run_id }}/actions/confirm && break
             attempts=$((attempts+1))
             sleep 10
           done
