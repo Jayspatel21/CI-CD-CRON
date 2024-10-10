@@ -200,15 +200,12 @@ jobs:
             --request POST \
             --data '{
               "data": {
-                "attributes": {
-                  "message": "Creating infrastructure via GitHub Actions"
-                },
                 "type": "runs",
                 "relationships": {
                   "workspace": {
                     "data": {
                       "type": "workspaces",
-                      "id": "ws-8d7zL1pet7ahr2it"  # Update to your workspace ID
+                      "id": "ws-8d7zL1pet7ahr2it"
                     }
                   }
                 }
