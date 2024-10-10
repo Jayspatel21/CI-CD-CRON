@@ -32,7 +32,77 @@
 #         if: github.ref == 'refs/heads/main'  # Runs only on the main branch
 #         run: terraform destroy -auto-approve
 
-name: Terraform Cloud Destroy
+# name: Terraform Cloud Destroy
+
+# on:
+#   schedule:
+#     - cron: '56 9 * * *'  # Schedule for 9:56 AM daily
+#   workflow_dispatch:
+
+# jobs:
+#   terraform:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 1
+
+#       - name: Upload Configuration
+#         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+#         id: upload
+#         with:
+#           workspace: "Jackk-1"
+#           directory: "."
+#         env:
+#           TF_CLOUD_ORGANIZATION: "jackkkk"
+#           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+
+#       - name: Trigger Destroy Run
+#         id: destroy
+#         run: |
+#           curl \
+#             --header "Authorization: Bearer ${{ secrets.TERRAFORM_API_TOKEN }}" \
+#             --header "Content-Type: application/vnd.api+json" \
+#             --request POST \
+#             --data '{
+#               "data": {
+#                 "attributes": {
+#                   "is-destroy": true,
+#                   "message": "Destroying infrastructure via GitHub Actions"
+#                 },
+#                 "type": "runs",
+#                 "relationships": {
+#                   "workspace": {
+#                     "data": {
+#                       "type": "workspaces",
+#                       "id": "ws-8d7zL1pet7ahr2it"
+#                     }
+#                   }
+#                 }
+#               }
+#             }' \
+#             https://app.terraform.io/api/v2/runs \
+#             --silent --show-error --fail --output response.json
+
+#       - name: Extract run_id
+#         id: extract_run_id
+#         run: |
+#           run_id=$(jq -r '.data.id' response.json)
+#           echo "::set-output name=destroy_run_id::$run_id"
+
+#       - name: Apply Destroy Run
+#         uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
+#         with:
+#           run: "${{ steps.extract_run_id.outputs.destroy_run_id }}"
+#           comment: "Infrastructure destroyed via GitHub Actions"
+#         env:
+#           TF_CLOUD_ORGANIZATION: "jackkkk"
+#           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+
+
+name: Terraform Cloud Destroy with Retry
 
 on:
   schedule:
@@ -77,7 +147,7 @@ jobs:
                   "workspace": {
                     "data": {
                       "type": "workspaces",
-                      "id": "ws-8d7zL1pet7ahr2it"
+                      "id": "ws-8d7zL1pet7ahr2it"  # Correct Workspace ID
                     }
                   }
                 }
@@ -92,16 +162,30 @@ jobs:
           run_id=$(jq -r '.data.id' response.json)
           echo "::set-output name=destroy_run_id::$run_id"
 
-      - name: Apply Destroy Run
-        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
-        with:
-          run: "${{ steps.extract_run_id.outputs.destroy_run_id }}"
-          comment: "Infrastructure destroyed via GitHub Actions"
+      # Retry destroy confirmation
+      - name: Retry Approve Destroy Plan if Failed
+        run: |
+          attempts=0
+          max_attempts=3
+          while [ $attempts -lt $max_attempts ]; do
+            curl \
+              --header "Authorization: Bearer ${{ secrets.TERRAFORM_API_TOKEN }}" \
+              --header "Content-Type: application/vnd.api+json" \
+              --request POST \
+              --data '{
+                "data": {
+                  "type": "runs",
+                  "attributes": {
+                    "status": "confirmed"
+                  }
+                }
+              }' \
+              https://app.terraform.io/api/v2/runs/${{ steps.extract_run_id.outputs.destroy_run_id }}/actions/confirm && break
+            attempts=$((attempts+1))
+            sleep 10
+          done
         env:
-          TF_CLOUD_ORGANIZATION: "jackkkk"
           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
-
-
 
 
 

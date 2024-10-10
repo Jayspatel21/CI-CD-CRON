@@ -41,6 +41,53 @@
 #           TF_VAR_digitalocean_token: ${{ secrets.TF_VAR_digitalocean_token }}
 
 
+# name: Terraform Cloud Deployment
+
+# on:
+#   schedule:
+#     - cron: '42 9 * * *'  
+#   workflow_dispatch:
+
+# jobs:
+#   terraform:
+#     runs-on: ubuntu-latest
+    
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 1
+      
+#       - name: Upload Configuration
+#         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+#         id: upload
+#         with:
+#           workspace: "Jackk-1"
+#           directory: "."
+#         env:
+#           TF_CLOUD_ORGANIZATION: "jackkkk"
+#           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+      
+#       - name: Create Run
+#         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+#         id: run
+#         with:
+#           workspace: "Jackk-1"
+#           configuration_version: "${{ steps.upload.outputs.configuration_version_id }}"
+#         env:
+#           TF_CLOUD_ORGANIZATION: "jackkkk"
+#           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+      
+#       - name: Apply Run
+#         uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
+#         if: fromJSON(steps.run.outputs.payload).data.attributes.actions.IsConfirmable
+#         with:
+#           run: "${{ steps.run.outputs.run_id }}"
+#           comment: "Applied via GitHub Actions"
+#         env:
+#           TF_CLOUD_ORGANIZATION: "jackkkk"
+#           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+
 name: Terraform Cloud Deployment
 
 on:
@@ -51,13 +98,17 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 30  # Add timeout to avoid infinite stuck jobs
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      
+
+      - name: Set Terraform Debug Logs
+        run: echo "TF_LOG=DEBUG" >> $GITHUB_ENV  # Enable verbose logs
+
       - name: Upload Configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
         id: upload
@@ -77,7 +128,7 @@ jobs:
         env:
           TF_CLOUD_ORGANIZATION: "jackkkk"
           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
-      
+
       - name: Apply Run
         uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
         if: fromJSON(steps.run.outputs.payload).data.attributes.actions.IsConfirmable
@@ -86,4 +137,29 @@ jobs:
           comment: "Applied via GitHub Actions"
         env:
           TF_CLOUD_ORGANIZATION: "jackkkk"
+          TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+
+      # Retry logic if the apply gets stuck
+      - name: Retry Apply Run if Stuck
+        run: |
+          attempts=0
+          max_attempts=3
+          while [ $attempts -lt $max_attempts ]; do
+            curl \
+              --header "Authorization: Bearer ${{ secrets.TERRAFORM_API_TOKEN }}" \
+              --header "Content-Type: application/vnd.api+json" \
+              --request POST \
+              --data '{
+                "data": {
+                  "attributes": {
+                    "status": "confirmed"
+                  },
+                  "type": "runs"
+                }
+              }' \
+              https://app.terraform.io/api/v2/runs/${{ steps.run.outputs.run_id }}/actions/confirm && break
+            attempts=$((attempts+1))
+            sleep 10
+          done
+        env:
           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
