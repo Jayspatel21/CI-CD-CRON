@@ -60,6 +60,7 @@ jobs:
           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
 
       - name: Trigger Destroy Run
+        id: destroy
         run: |
           curl \
             --header "Authorization: Bearer ${{ secrets.TERRAFORM_API_TOKEN }}" \
@@ -82,18 +83,26 @@ jobs:
                 }
               }
             }' \
-            https://app.terraform.io/api/v2/runs
-        env:
-          TF_CLOUD_ORGANIZATION: "jackkkk"
-          TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+            https://app.terraform.io/api/v2/runs \
+            --silent --show-error --fail --output response.json
+
+      - name: Extract run_id
+        id: extract_run_id
+        run: |
+          run_id=$(jq -r '.data.id' response.json)
+          echo "::set-output name=destroy_run_id::$run_id"
 
       - name: Apply Destroy Run
         uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
         with:
-          run: "${{ steps.upload.outputs.run_id }}"
+          run: "${{ steps.extract_run_id.outputs.destroy_run_id }}"
           comment: "Infrastructure destroyed via GitHub Actions"
         env:
           TF_CLOUD_ORGANIZATION: "jackkkk"
           TF_API_TOKEN: "${{ secrets.TERRAFORM_API_TOKEN }}"
+
+
+
+
 
 
