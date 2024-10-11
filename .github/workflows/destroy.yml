@@ -105,8 +105,8 @@
 name: Terraform Cloud Destroy with Retry
 
 on:
-  schedule:
-    - cron: '30 6 * * *'  # Schedule for 9:56 AM daily
+  # schedule:
+  #   - cron: '30 6 * * *'
   workflow_dispatch:
 
 jobs:
